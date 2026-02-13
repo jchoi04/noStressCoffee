@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Supabase
 
 enum Tab {
     case homeview, chatview, giftview, announcementsview
@@ -28,6 +29,9 @@ struct RootView: View {
         }
         .task {
             await authVM.restoreSession()
+        }
+        .onOpenURL { url in
+            SupabaseManager.client.handle(url)
         }
     }
     

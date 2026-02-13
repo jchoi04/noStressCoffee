@@ -21,17 +21,20 @@ class AuthViewModel: ObservableObject {
         authTask = Task {
             for await (event, session) in SupabaseManager.client.auth.authStateChanges {
                 print("Auth Event: \(event)")
-                self.currentUser = session?.user
+                if let session = session, !session.isExpired {
+                    self.currentUser = session.user
+                } else {
+                    self.currentUser = nil
+                }
             }
         }
     }
 
     // Check if the user is already logged in when the app starts
     func restoreSession() async {
-        do {
-            let session = try await SupabaseManager.client.auth.session
+        if let session = SupabaseManager.client.auth.currentSession {
             self.currentUser = session.user
-        } catch {
+        } else {
             self.currentUser = nil
         }
     }

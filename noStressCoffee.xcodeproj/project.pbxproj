@@ -19,9 +19,22 @@
 		D2A8A7152F36AEC000E4F3ED /* noStressCoffee.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = noStressCoffee.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D2C64BEC2F3FDEB300AE364C /* Exceptions for "noStressCoffee" folder in "noStressCoffee" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D2A8A7142F36AEC000E4F3ED /* noStressCoffee */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		D2A8A7172F36AEC000E4F3ED /* noStressCoffee */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D2C64BEC2F3FDEB300AE364C /* Exceptions for "noStressCoffee" folder in "noStressCoffee" target */,
+			);
 			path = noStressCoffee;
 			sourceTree = "<group>";
 		};
@@ -280,6 +293,7 @@
 				DEVELOPMENT_TEAM = 2VT772UCAA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = noStressCoffee/Info.plist;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "We use FaceID to securely and quickly log you into your account.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -313,6 +327,7 @@
 				DEVELOPMENT_TEAM = 2VT772UCAA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = noStressCoffee/Info.plist;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "We use FaceID to securely and quickly log you into your account.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
