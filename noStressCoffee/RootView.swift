@@ -17,45 +17,55 @@ struct RootView: View {
     
     var body: some View {
         Group {
-//            if authVM.currentUser == nil {
-//                LogOnView(authVM: authVM)
-//            } else {
+            if authVM.currentUser == nil {
+                LogOnView(authVM: authVM)
+            } else {
                 VStack(spacing: 0) {
-                    ZStack {
-                        switch selectedTab {
-                        case .home: Home()
-                        case .announcements: Announcements()
-                        case .chat: Chat()
-                        case .gift: Gift()
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    
-                    HStack {
-                        TabButton(image: "house", tab: .home, selected: $selectedTab)
-                        Spacer()
-                        TabButton(image: "megaphone", tab: .announcements, selected: $selectedTab)
-                        Spacer()
-                        TabButton(image: "message", tab: .chat, selected: $selectedTab)
-                        Spacer()
-                        TabButton(image: "gift", tab: .gift, selected: $selectedTab)
-                    }
-                    .padding(.horizontal, 40)
-                    .padding(.top, 25)
-                    .padding(.bottom, 0) // Let the safe area handle the bottom spacing
-                    .frame(maxWidth: .infinity)
-                    .background(Color(.systemBackground) .ignoresSafeArea(edges: .bottom))
-                    .overlay(Divider(), alignment: .top)
+                    contentArea
+                    tabBar
                 }
-//            }
+            }
         }
         .environmentObject(authVM)
         .task {
             await authVM.restoreSession()
         }
     }
-}
     
+    
+    
+    // MARK: Content Switcher
+    private var contentArea: some View {
+        ZStack {
+            switch selectedTab {
+            case .home: Home()
+            case .announcements: Announcements()
+            case .chat: Chat()
+            case .gift: Gift()
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: Navigation Bar
+    private var tabBar: some View {
+        HStack {
+            TabButton(image: "house", tab: .home, selected: $selectedTab)
+            Spacer()
+            TabButton(image: "megaphone", tab: .announcements, selected: $selectedTab)
+            Spacer()
+            TabButton(image: "message", tab: .chat, selected: $selectedTab)
+            Spacer()
+            TabButton(image: "gift", tab: .gift, selected: $selectedTab)
+        }
+        .padding(.horizontal, 40)
+        .padding(.top, 30)
+        .padding(.bottom, 0) // Let the safe area handle the bottom spacing
+        .frame(maxWidth: .infinity)
+        .background(Color(.systemBackground) .ignoresSafeArea(edges: .bottom))
+        .overlay(Divider(), alignment: .top)
+    }
+}
 
 //sub-view for each button
 struct TabButton: View {
