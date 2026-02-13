@@ -17,9 +17,9 @@ struct RootView: View {
     
     var body: some View {
         Group {
-            if authVM.currentUser == nil {
-                LogOnView(authVM: authVM)
-            } else {
+//            if authVM.currentUser == nil {
+//                LogOnView(authVM: authVM)
+//            } else {
                 VStack(spacing: 0) {
                     ZStack {
                         switch selectedTab {
@@ -42,12 +42,12 @@ struct RootView: View {
                     }
                     .padding(.horizontal, 40)
                     .padding(.top, 25)
-                    .padding(.bottom, 30)
-                    .background(Color(.systemBackground))
-                    .border(Color.gray.opacity(0.2), width: 0.5)
+                    .padding(.bottom, 0) // Let the safe area handle the bottom spacing
+                    .frame(maxWidth: .infinity)
+                    .background(Color(.systemBackground) .ignoresSafeArea(edges: .bottom))
+                    .overlay(Divider(), alignment: .top)
                 }
-                .ignoresSafeArea(.all, edges: .bottom)
-            }
+//            }
         }
         .environmentObject(authVM)
         .task {
