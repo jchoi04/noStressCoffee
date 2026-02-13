@@ -9,7 +9,7 @@ import SwiftUI
     
 import SwiftUI
 
-struct Announcements: View {
+struct AnnouncementsView: View {
     var body: some View {
         NavigationStack {
             List {
@@ -30,5 +30,5 @@ struct Announcements: View {
 }
 
 #Preview {
-    Announcements()
+    AnnouncementsView()
 }

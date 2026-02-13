@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct Gift: View {
+struct GiftView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
@@ -29,5 +29,5 @@ struct Gift: View {
 }
 
 #Preview {
-    Gift()
+    GiftView()
 }

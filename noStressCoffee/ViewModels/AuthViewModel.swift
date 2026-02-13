@@ -14,6 +14,17 @@ class AuthViewModel: ObservableObject {
     @Published var currentUser: User? = nil
     @Published var errorMessage: String? = nil
     @Published var isLoading = false
+    @Published var showingConfirmationAlert = false
+    
+    private var authTask: Task<Void, Never>?
+    init() {
+        authTask = Task {
+            for await (event, session) in SupabaseManager.client.auth.authStateChanges {
+                print("Auth Event: \(event)")
+                self.currentUser = session?.user
+            }
+        }
+    }
 
     // Check if the user is already logged in when the app starts
     func restoreSession() async {
@@ -28,47 +39,36 @@ class AuthViewModel: ObservableObject {
     // Log In logic
     func logIn(email: String, password: String) async {
         isLoading = true
-        errorMessage = nil // Reset error state before starting
-        
-        // 'defer' ensures isLoading becomes false even if an error is thrown
+        errorMessage = nil
         defer { isLoading = false }
         
         do {
-            // 1. Attempt to sign in with password
-            let session = try await SupabaseManager.client.auth.signIn(email: email, password: password)
-            
-            // 2. Update the published user property
-            // This will trigger any view listening to 'currentUser' to update (e.g., navigating to Home)
-            self.currentUser = session.user
-            
+            _ = try await SupabaseManager.client.auth.signIn(email: email, password: password)
         } catch {
-            // 3. Capture the error to display in the View
             self.errorMessage = error.localizedDescription
-            self.currentUser = nil
         }
     }
 
     // Sign Up logic
     func signUp(email: String, password: String) async {
         isLoading = true
-        errorMessage = nil // Clear previous errors
+        errorMessage = nil
         defer { isLoading = false }
         
         do {
             try await SupabaseManager.client.auth.signUp(email: email, password: password)
-            // Note: Depending on Supabase settings, user might need to confirm email first
+            self.showingConfirmationAlert = true
         } catch {
             self.errorMessage = error.localizedDescription
         }
     }
     
-    //Log Off
+    //Log Off logic
     func logOff() async {
         do {
             try await SupabaseManager.client.auth.signOut()
-            self.currentUser = nil // This trigger tells the UI to swap views
         } catch {
-            print("Error signing out: \(error.localizedDescription)")
+            print("Error: \(error)")
         }
     }
 }

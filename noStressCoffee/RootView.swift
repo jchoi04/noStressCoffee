@@ -8,12 +8,12 @@
 import SwiftUI
 
 enum Tab {
-    case home, chat, gift, announcements
+    case homeview, chatview, giftview, announcementsview
 }
 
 struct RootView: View {
-    @StateObject private var authVM = AuthViewModel()
-    @State private var selectedTab: Tab = .home
+    @EnvironmentObject var authVM: AuthViewModel
+    @State private var selectedTab: Tab = .homeview
     
     var body: some View {
         Group {
@@ -26,7 +26,6 @@ struct RootView: View {
                 }
             }
         }
-        .environmentObject(authVM)
         .task {
             await authVM.restoreSession()
         }
@@ -38,10 +37,10 @@ struct RootView: View {
     private var contentArea: some View {
         ZStack {
             switch selectedTab {
-            case .home: Home()
-            case .announcements: Announcements()
-            case .chat: Chat()
-            case .gift: Gift()
+            case .homeview: HomeView()
+            case .announcementsview: AnnouncementsView()
+            case .chatview: ChatView()
+            case .giftview: GiftView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -50,13 +49,13 @@ struct RootView: View {
     // MARK: Navigation Bar
     private var tabBar: some View {
         HStack {
-            TabButton(image: "house", tab: .home, selected: $selectedTab)
+            TabButton(image: "house", tab: .homeview, selected: $selectedTab)
             Spacer()
-            TabButton(image: "megaphone", tab: .announcements, selected: $selectedTab)
+            TabButton(image: "megaphone", tab: .announcementsview, selected: $selectedTab)
             Spacer()
-            TabButton(image: "message", tab: .chat, selected: $selectedTab)
+            TabButton(image: "message", tab: .chatview, selected: $selectedTab)
             Spacer()
-            TabButton(image: "gift", tab: .gift, selected: $selectedTab)
+            TabButton(image: "gift", tab: .giftview, selected: $selectedTab)
         }
         .padding(.horizontal, 40)
         .padding(.top, 30)
@@ -85,4 +84,5 @@ struct TabButton: View {
 
 #Preview {
     RootView()
+        .environmentObject(AuthViewModel())
 }
