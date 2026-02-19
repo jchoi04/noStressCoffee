@@ -8,13 +8,34 @@
 import SwiftUI
 import Supabase
 
-enum Tab {
-    case homeview, chatview, giftview, announcementsview
+enum Tab: CaseIterable {
+    case home, announcements, chat, gift, merch
+
+    var icon: String {
+        switch self {
+        case .home: return "house"
+        case .announcements: return "megaphone"
+        case .chat: return "message"
+        case .gift: return "gift"
+        case .merch: return "cart"
+        }
+    }
+
+    @ViewBuilder
+    var destination: some View {
+        switch self {
+        case .home: HomeView()
+        case .announcements: AnnouncementsView()
+        case .chat: ChatView()
+        case .gift: GiftView()
+        case .merch: MerchView()
+        }
+    }
 }
 
 struct RootView: View {
     @EnvironmentObject var authVM: AuthViewModel
-    @State private var selectedTab: Tab = .homeview
+    @State private var selectedTab: Tab = .home
     
     var body: some View {
         Group {
@@ -22,65 +43,54 @@ struct RootView: View {
                 LogOnView(authVM: authVM)
             } else {
                 VStack(spacing: 0) {
-                    contentArea
-                    tabBar
+                    selectedTab.destination
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    
+                    CustomTabBar(selectedTab: $selectedTab)
                 }
             }
         }
-        .task {
-            await authVM.restoreSession()
-        }
-        .onOpenURL { url in
-            SupabaseManager.client.handle(url)
-        }
+        .task { await authVM.restoreSession() }
+        .onOpenURL { url in SupabaseManager.client.handle(url) }
     }
+}
     
     
     
-    // MARK: Content Switcher
-    private var contentArea: some View {
-        ZStack {
-            switch selectedTab {
-            case .homeview: HomeView()
-            case .announcementsview: AnnouncementsView()
-            case .chatview: ChatView()
-            case .giftview: GiftView()
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
+struct CustomTabBar: View {
+    @Binding var selectedTab: Tab
 
-    // MARK: Navigation Bar
-    private var tabBar: some View {
-        HStack {
-            TabButton(image: "house", tab: .homeview, selected: $selectedTab)
-            Spacer()
-            TabButton(image: "megaphone", tab: .announcementsview, selected: $selectedTab)
-            Spacer()
-            TabButton(image: "message", tab: .chatview, selected: $selectedTab)
-            Spacer()
-            TabButton(image: "gift", tab: .giftview, selected: $selectedTab)
+    var body: some View {
+        VStack(spacing: 0) {
+            Divider()
+            HStack {
+                ForEach(Tab.allCases, id: \.self) { tab in
+                    TabButton(tab: tab, selected: $selectedTab)
+                    
+                    if tab != Tab.allCases.last {
+                        Spacer()
+                    }
+                }
+            }
+            .padding(.horizontal, 40)
+            .padding(.top, 20)
+            .background(Color(.systemBackground))
         }
-        .padding(.horizontal, 40)
-        .padding(.top, 30)
-        .padding(.bottom, 0) // Let the safe area handle the bottom spacing
-        .frame(maxWidth: .infinity)
-        .background(Color(.systemBackground) .ignoresSafeArea(edges: .bottom))
-        .overlay(Divider(), alignment: .top)
     }
 }
 
-//sub-view for each button
 struct TabButton: View {
-    let image: String
     let tab: Tab
-    @Binding var selected: Tab //changes selectedTab variable
+    @Binding var selected: Tab
     
     var body: some View {
-        Button(action: { selected = tab }) {
-            Image(systemName: image)
-                .font(.system(size: 24, weight: .regular))
+        Button {
+            selected = tab
+        } label: {
+            Image(systemName: tab.icon)
+                .font(.system(size: 24))
                 .foregroundColor(selected == tab ? .green : .brown)
+                .frame(minWidth: 44, minHeight: 44) // Better hit target
         }
     }
 }
