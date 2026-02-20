@@ -12,16 +12,15 @@ struct LogOnView: View {
     
     @State private var email = ""
     @State private var password = ""
+    @State private var confirmPassword = ""
     @State private var isSignUpMode = false
+    @State private var localError: String? = nil
     
     var body: some View {
         VStack(spacing: 20) {
             headerSection
-            
             inputSection
-            
             errorSection
-            
             actionSection
         }
         .padding(.horizontal)
@@ -55,26 +54,28 @@ private extension LogOnView {
     }
     
     var inputSection: some View {
-        VStack(alignment: .leading) {
+        VStack(spacing: 8) {
             TextField("Email", text: $email)
                 .textFieldStyle(.roundedBorder)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .keyboardType(.emailAddress)
             
-            SecureField("Password", text: $password)
-                .textFieldStyle(.roundedBorder)
+            CustomPasswordField(placeholder: "Password", text: $password)
+            if isSignUpMode {
+                CustomPasswordField(placeholder: "Confirm Password", text: $confirmPassword)
+            }
         }
     }
     
     @ViewBuilder
-    var errorSection: some View {
-        if let errorMessage = authVM.errorMessage {
-            Text(errorMessage)
-                .foregroundColor(.red)
-                .font(.caption)
+        var errorSection: some View {
+            if let errorMessage = localError ?? authVM.errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .font(.caption)
+            }
         }
-    }
     
     var actionSection: some View {
         VStack(spacing: 12) {
@@ -136,12 +137,16 @@ private extension LogOnView {
 // MARK: - Actions
 private extension LogOnView {
     func handleAuthAction() {
-        Task {
-            if isSignUpMode {
-                await authVM.signUp(email: email, password: password)
-            } else {
-                await authVM.logIn(email: email, password: password)
+        localError = nil
+        
+        if isSignUpMode {
+            guard password == confirmPassword else {
+                localError = "Passwords do not match."
+                return
             }
+            Task { await authVM.signUp(email: email, password: password) }
+        } else {
+            Task { await authVM.logIn(email: email, password: password) }
         }
     }
 }
