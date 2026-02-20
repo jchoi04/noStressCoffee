@@ -54,6 +54,11 @@ class AuthViewModel: ObservableObject {
 
     // Sign Up logic
     func signUp(email: String, password: String) async {
+        guard password.count >= 8 else {
+            self.errorMessage = "Password must be at least 8 characters long."
+            return
+        }
+        
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }

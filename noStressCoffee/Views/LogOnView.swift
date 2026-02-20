@@ -16,77 +16,107 @@ struct LogOnView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Text("noStressCoffee")
-                .font(.system(size: 32, weight: .bold, design: .serif))
-                .foregroundColor(.brown)
+            headerSection
             
-            VStack(alignment: .leading) {
-                TextField("Email", text: $email)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .autocapitalization(.none)
-                    .disableAutocorrection(true)
-                    .keyboardType(.emailAddress)
-                
-                SecureField("Password", text: $password)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-            }
-            .padding(.horizontal)
+            inputSection
             
-            if let errorMessage = authVM.errorMessage {
-                Text(errorMessage)
-                    .foregroundColor(.red)
-                    .font(.caption)
-                    .padding(.horizontal)
-            }
+            errorSection
             
-            VStack(spacing: 12) {
-                if authVM.isLoading {
-                    ProgressView()
-                } else {
-                    Button(action: {
-                        Task {
-                            if isSignUpMode {
-                                await authVM.signUp(email: email, password: password)
-                            } else {
-                                await authVM.logIn(email: email, password: password)
-                            }
-                        }
-                    }) {
-                        Text(isSignUpMode ? "Create Account" : "Log In")
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.brown)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    }
-                    
-                    HStack(spacing: 4) {
-                        Text(isSignUpMode ? "Already have an account?" : "Don't have an account?")
-                            .font(.footnote)
-                            .foregroundColor(.gray)
-                        
-                        Text(isSignUpMode ? "Log In" : "Sign Up")
-                            .font(.footnote)
-                            .fontWeight(.bold)
-                            .underline()
-                            .foregroundColor(.brown)
-                            .onTapGesture {
-                                withAnimation {
-                                    isSignUpMode.toggle()
-                                }
-                            }
-                    }
-                }
-            }
-            .padding(.horizontal)
+            actionSection
         }
-
+        .padding(.horizontal)
         .alert("Verify Email", isPresented: $authVM.showingConfirmationAlert) {
             Button("OK", role: .cancel) {
-                isSignUpMode = false // Switch back to login mode after signing up
+                isSignUpMode = false
             }
         } message: {
             Text("Please check your inbox and click the verification link to activate your account.")
+        }
+    }
+}
+
+// MARK: - UI Components
+private extension LogOnView {
+    
+    var headerSection: some View {
+        Text("noStressCoffee")
+            .font(.system(size: 32, weight: .bold, design: .serif))
+            .foregroundColor(.brown)
+    }
+    
+    var inputSection: some View {
+        VStack(alignment: .leading) {
+            TextField("Email", text: $email)
+                .textFieldStyle(.roundedBorder)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .keyboardType(.emailAddress)
+            
+            SecureField("Password", text: $password)
+                .textFieldStyle(.roundedBorder)
+        }
+    }
+    
+    @ViewBuilder
+    var errorSection: some View {
+        if let errorMessage = authVM.errorMessage {
+            Text(errorMessage)
+                .foregroundColor(.red)
+                .font(.caption)
+        }
+    }
+    
+    var actionSection: some View {
+        VStack(spacing: 12) {
+            if authVM.isLoading {
+                ProgressView()
+            } else {
+                submitButton
+                modeToggleView
+            }
+        }
+    }
+    
+    var submitButton: some View {
+        Button(action: handleAuthAction) {
+            Text(isSignUpMode ? "Create Account" : "Log In")
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.brown)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+        }
+    }
+    
+    var modeToggleView: some View {
+        HStack(spacing: 4) {
+            Text(isSignUpMode ? "Already have an account?" : "Don't have an account?")
+                .font(.footnote)
+                .foregroundColor(.gray)
+            
+            Text(isSignUpMode ? "Log In" : "Sign Up")
+                .font(.footnote)
+                .fontWeight(.bold)
+                .underline()
+                .foregroundColor(.brown)
+                .onTapGesture {
+                    withAnimation {
+                        isSignUpMode.toggle()
+                    }
+                }
+        }
+    }
+}
+
+// MARK: - Actions
+private extension LogOnView {
+    func handleAuthAction() {
+        Task {
+            if isSignUpMode {
+                await authVM.signUp(email: email, password: password)
+            } else {
+                await authVM.logIn(email: email, password: password)
+            }
         }
     }
 }
