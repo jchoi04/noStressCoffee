@@ -56,7 +56,12 @@ private extension LogOnView {
     var inputSection: some View {
         VStack(spacing: 8) {
             TextField("Email", text: $email)
-                .textFieldStyle(.roundedBorder)
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                    .stroke(Color(.systemGray4), lineWidth: 1)
+                )
+                .frame(height: 50)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .keyboardType(.emailAddress)
@@ -83,7 +88,7 @@ private extension LogOnView {
                 ProgressView()
             } else {
                 submitButton
-//                forgotPassword
+//              forgotPassword
                 modeToggleView
             }
         }

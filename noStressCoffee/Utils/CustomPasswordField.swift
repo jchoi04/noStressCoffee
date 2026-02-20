@@ -29,7 +29,7 @@ struct CustomPasswordField: View {
                 .padding(12)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color(.systemGray4), lineWidth: 1)
+                    .stroke(Color(.systemGray4), lineWidth: 1)
                 )
                 .frame(height: 50)
                 Button(action: {
@@ -41,7 +41,7 @@ struct CustomPasswordField: View {
                 }
             }
         }
-        //took out padding horizontal b/c parent stacks already have horizontal padding
+        //took out padding horizontal b/c parent stack already has horizontal padding
     }
 }
 
