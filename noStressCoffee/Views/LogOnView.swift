@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct LogOnView: View {
-    @ObservedObject var authVM: AuthViewModel
+    @EnvironmentObject var authVM: AuthViewModel
     
     @State private var email = ""
     @State private var password = ""
@@ -25,7 +25,17 @@ struct LogOnView: View {
             actionSection
         }
         .padding(.horizontal)
-        .alert("Verify Email", isPresented: $authVM.showingConfirmationAlert) {
+//        .alert("Password Reset", isPresented: Binding(
+//                get: { authVM.passwordResetMessage != nil },
+//                set: { _ in authVM.passwordResetMessage = nil }
+//            )) {
+//                Button("OK", role: .cancel) { }
+//            } message: {
+//                if let message = authVM.passwordResetMessage {
+//                    Text(message)
+//                }
+//            }
+        .alert("Verify Email", isPresented: $authVM.showVerifyEmailAlert) {
             Button("OK", role: .cancel) {
                 isSignUpMode = false
             }
@@ -72,6 +82,7 @@ private extension LogOnView {
                 ProgressView()
             } else {
                 submitButton
+//                forgotPassword
                 modeToggleView
             }
         }
@@ -88,6 +99,20 @@ private extension LogOnView {
         }
     }
     
+//    @ViewBuilder
+//    var forgotPassword: some View {
+//        if !isSignUpMode {
+//            Button("Forgot Password?") {
+//                Task {
+//                    await authVM.sendPasswordResetEmail(email: email)
+//                }
+//            }
+//            .font(.footnote)
+//            .foregroundColor(.brown)
+//            .padding(.bottom, 4)
+//        }
+//    }
+//    
     var modeToggleView: some View {
         HStack(spacing: 4) {
             Text(isSignUpMode ? "Already have an account?" : "Don't have an account?")
@@ -122,5 +147,5 @@ private extension LogOnView {
 }
 
 #Preview {
-    LogOnView(authVM: AuthViewModel())
+    LogOnView().environmentObject(AuthViewModel())
 }

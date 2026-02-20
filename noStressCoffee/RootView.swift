@@ -40,7 +40,7 @@ struct RootView: View {
     var body: some View {
         Group {
             if authVM.currentUser == nil {
-                LogOnView(authVM: authVM)
+                LogOnView()
             } else {
                 VStack(spacing: 0) {
                     selectedTab.destination
@@ -48,6 +48,9 @@ struct RootView: View {
                     
                     CustomTabBar(selectedTab: $selectedTab)
                 }
+//                .sheet(isPresented: $authVM.showingUpdatePasswordSheet) {
+//                    UpdatePasswordView()
+//                }
             }
         }
         .task { await authVM.restoreSession() }
