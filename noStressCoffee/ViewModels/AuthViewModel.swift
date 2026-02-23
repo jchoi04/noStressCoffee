@@ -16,8 +16,8 @@ class AuthViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var showVerifyEmailAlert = false
     
-//    @Published var passwordResetMessage: String? = nil
-//    @Published var showingUpdatePasswordSheet = false
+    @Published var passwordResetMessage: String? = nil
+    @Published var showingUpdatePasswordSheet = false
     
     private var authTask: Task<Void, Never>?
     init() {
@@ -27,9 +27,9 @@ class AuthViewModel: ObservableObject {
                 
                 if let session = session, !session.isExpired {
                     self.currentUser = session.user
-//                    if event == .passwordRecovery {
-//                        self.showingUpdatePasswordSheet = true
-//                    }
+                    if event == .passwordRecovery {
+                        self.showingUpdatePasswordSheet = true
+                    }
                 } else {
                     self.currentUser = nil
                 }
@@ -40,16 +40,6 @@ class AuthViewModel: ObservableObject {
         authTask?.cancel()
     }
     
-    
-
-    // Check if the user is already logged in when the app starts
-    func restoreSession() async {
-        if let session = SupabaseManager.client.auth.currentSession {
-            self.currentUser = session.user
-        } else {
-            self.currentUser = nil
-        }
-    }
     
     // Log In logic
     func logIn(email: String, password: String) async {
@@ -91,47 +81,67 @@ class AuthViewModel: ObservableObject {
             print("Error: \(error)")
         }
     }
-//    
-//    func sendPasswordResetEmail(email: String) async {
-//            guard !email.isEmpty else {
-//                self.errorMessage = "Please enter your email to reset your password."
-//                return
-//            }
-//            
-//            isLoading = true
-//            errorMessage = nil
-//            passwordResetMessage = nil
-//            
-//            do {
-//                // Supabase sends a recovery email with a deep link
-//                try await SupabaseManager.client.auth.resetPasswordForEmail(email)
-//                self.passwordResetMessage = "If an account exists, a reset link has been sent to your email."
-//            } catch {
-//                self.errorMessage = error.localizedDescription
-//            }
-//            
-//            isLoading = false
-//        }
-//        
-//    // 2. Updates the password after the user clicks the link and returns to the app
-//    func updatePassword(newPassword: String) async {
-//        guard newPassword.count >= 8 else {
-//            self.errorMessage = "Password must be at least 8 characters long."
-//            return
-//        }
-//        
-//        isLoading = true
-//        errorMessage = nil
-//        
-//        do {
-//            _ = try await SupabaseManager.client.auth.update(
-//                user: UserAttributes(password: newPassword)
-//            )
-//            self.showingUpdatePasswordSheet = false
-//        } catch {
-//            self.errorMessage = error.localizedDescription
-//        }
-//        
-//        isLoading = false
-//    }
+    
+    func sendPasswordResetEmail(email: String) async {
+            guard !email.isEmpty else {
+                self.errorMessage = "Please enter your email to reset your password."
+                return
+            }
+            
+            isLoading = true
+            errorMessage = nil
+            passwordResetMessage = nil
+            
+            do {
+
+                try await SupabaseManager.client.auth.resetPasswordForEmail(
+                    email,
+                    redirectTo: URL(string: "nostresscoffee://reset-callback")!
+                )
+                self.passwordResetMessage = "If an account exists, a reset link has been sent to your email."
+                } catch {
+                    self.errorMessage = error.localizedDescription
+                }
+                
+                isLoading = false
+        }
+
+    // 2. Updates the password after the user clicks the link and returns to the app
+    func updatePassword(newPassword: String) async {
+        guard newPassword.count >= 8 else {
+            self.errorMessage = "Password must be at least 8 characters long."
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            _ = try await SupabaseManager.client.auth.update(
+                user: UserAttributes(password: newPassword)
+            )
+            self.showingUpdatePasswordSheet = false
+        } catch {
+            self.errorMessage = error.localizedDescription
+        }
+        
+        isLoading = false
+    }
+    
+    func handleIncomingURL(_ url: URL) {
+        let isResetLink = url.absoluteString.contains("reset-callback")
+        
+        SupabaseManager.client.handle(url)
+        
+        guard isResetLink else { return }
+        
+        Task {
+            for await state in SupabaseManager.client.auth.authStateChanges {
+                if state.session != nil {
+                    showingUpdatePasswordSheet = true
+                    break
+                }
+            }
+        }
+    }
 }

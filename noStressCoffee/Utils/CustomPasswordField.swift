@@ -12,40 +12,50 @@ struct CustomPasswordField: View {
     @Binding var text: String
     @State private var showPassword = false
     
+    enum Field {
+        case secure, plain
+    }
+    @FocusState private var focusedField: Field?
+    
     var body: some View {
-        VStack {
-            ZStack(alignment: .trailing){
-                Group {
-                    if showPassword {
-                        TextField(placeholder, text: $text)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                    } else {
-                        SecureField(placeholder, text: $text)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                    }
+        ZStack(alignment: .trailing) {
+        
+            ZStack(alignment: .leading) {
+                SecureField(placeholder, text: $text)
+                    .focused($focusedField, equals: .secure)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .opacity(showPassword ? 0 : 1)
+                
+                TextField(placeholder, text: $text)
+                    .focused($focusedField, equals: .plain)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .opacity(showPassword ? 1 : 0)
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                .stroke(Color(.systemGray4), lineWidth: 1)
+            )
+            .frame(height: 50)
+            
+            Button(action: {
+                let wasFocused = (focusedField != nil)
+                showPassword.toggle()
+                
+                if wasFocused {
+                    focusedField = showPassword ? .plain : .secure
                 }
-                .padding(12)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                    .stroke(Color(.systemGray4), lineWidth: 1)
-                )
-                .frame(height: 50)
-                Button(action: {
-                    showPassword.toggle()
-                }) {
-                    Image(systemName: showPassword ? "eye.slash" : "eye")
-                        .foregroundColor(.gray)
-                        .padding(.trailing, 12)
-                }
+            }) {
+                Image(systemName: showPassword ? "eye.slash" : "eye")
+                    .foregroundColor(.gray)
+                    .padding(.trailing, 12)
             }
         }
-        //took out padding horizontal b/c parent stack already has horizontal padding
     }
 }
 
-
 #Preview {
-    CustomPasswordField(placeholder: "password here", text: .init(get: {""}, set: {_ in}))
+    CustomPasswordField(placeholder: "Password", text: .constant(""))
 }

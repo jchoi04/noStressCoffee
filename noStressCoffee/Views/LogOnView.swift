@@ -16,6 +16,8 @@ struct LogOnView: View {
     @State private var isSignUpMode = false
     @State private var localError: String? = nil
     
+    @State private var showingForgotPasswordSheet = false
+    
     var body: some View {
         VStack(spacing: 20) {
             headerSection
@@ -24,16 +26,10 @@ struct LogOnView: View {
             actionSection
         }
         .padding(.horizontal)
-//        .alert("Password Reset", isPresented: Binding(
-//                get: { authVM.passwordResetMessage != nil },
-//                set: { _ in authVM.passwordResetMessage = nil }
-//            )) {
-//                Button("OK", role: .cancel) { }
-//            } message: {
-//                if let message = authVM.passwordResetMessage {
-//                    Text(message)
-//                }
-//            }
+            .sheet(isPresented: $showingForgotPasswordSheet) {
+                ForgotPasswordView()
+            }
+        
         .alert("Verify Email", isPresented: $authVM.showVerifyEmailAlert) {
             Button("OK", role: .cancel) {
                 isSignUpMode = false
@@ -88,7 +84,7 @@ private extension LogOnView {
                 ProgressView()
             } else {
                 submitButton
-//              forgotPassword
+              forgotPassword
                 modeToggleView
             }
         }
@@ -105,20 +101,18 @@ private extension LogOnView {
         }
     }
     
-//    @ViewBuilder
-//    var forgotPassword: some View {
-//        if !isSignUpMode {
-//            Button("Forgot Password?") {
-//                Task {
-//                    await authVM.sendPasswordResetEmail(email: email)
-//                }
-//            }
-//            .font(.footnote)
-//            .foregroundColor(.brown)
-//            .padding(.bottom, 4)
-//        }
-//    }
-//    
+    @ViewBuilder
+        var forgotPassword: some View {
+            if !isSignUpMode {
+                Button("Forgot Password?") {
+                    showingForgotPasswordSheet = true // <-- Show the sheet!
+                }
+                .font(.footnote)
+                .foregroundColor(.brown)
+                .padding(.bottom, 4)
+            }
+        }
+    
     var modeToggleView: some View {
         HStack(spacing: 4) {
             Text(isSignUpMode ? "Already have an account?" : "Don't have an account?")

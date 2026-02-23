@@ -38,24 +38,26 @@ struct RootView: View {
     @State private var selectedTab: Tab = .home
     
     var body: some View {
-        Group {
-            if authVM.currentUser == nil {
-                LogOnView()
-            } else {
-                VStack(spacing: 0) {
-                    selectedTab.destination
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    
-                    CustomTabBar(selectedTab: $selectedTab)
+            ZStack {
+                if authVM.currentUser == nil {
+                    LogOnView()
+                } else {
+                    VStack(spacing: 0) {
+                        selectedTab.destination
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        
+                        CustomTabBar(selectedTab: $selectedTab)
+                    }
                 }
-//                .sheet(isPresented: $authVM.showingUpdatePasswordSheet) {
-//                    UpdatePasswordView()
-//                }
+            }
+            .sheet(isPresented: $authVM.showingUpdatePasswordSheet) {
+                UpdatePasswordView()
+            }
+        
+            .onOpenURL { url in
+                authVM.handleIncomingURL(url)
             }
         }
-        .task { await authVM.restoreSession() }
-        .onOpenURL { url in SupabaseManager.client.handle(url) }
-    }
 }
     
     
