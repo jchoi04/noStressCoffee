@@ -13,6 +13,7 @@ struct UpdatePasswordView: View {
     @State private var newPassword = ""
     @State private var confirmPassword = ""
     @State private var localError: String? = nil
+    @State private var showingForgotPassword = false
     
     var body: some View {
         NavigationStack {
@@ -26,12 +27,23 @@ struct UpdatePasswordView: View {
                     CustomPasswordField(placeholder: "Confirm Password", text: $confirmPassword)
                 }
                 
-                // Show either our local validation error or the Supabase error
                 if let error = localError ?? authVM.errorMessage {
                     Text(error)
                         .foregroundColor(.red)
                         .font(.caption)
                         .multilineTextAlignment(.center)
+                }
+                
+                if authVM.isTokenExpired {
+                    Button(action: {
+                        showingForgotPassword = true
+                    }) {
+                        Text("Link expired? Request a new one.")
+                            .font(.footnote)
+                            .foregroundColor(.brown)
+                            .underline()
+                    }
+                    .padding(.top, 5)
                 }
                 
                 Button(action: {

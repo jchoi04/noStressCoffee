@@ -15,9 +15,9 @@ class AuthViewModel: ObservableObject {
     @Published var errorMessage: String? = nil
     @Published var isLoading = false
     @Published var showVerifyEmailAlert = false
-    
     @Published var passwordResetMessage: String? = nil
     @Published var showingUpdatePasswordSheet = false
+    @Published var isTokenExpired: Bool = false
     
     private var authTask: Task<Void, Never>?
     init() {
@@ -122,7 +122,13 @@ class AuthViewModel: ObservableObject {
             )
             self.showingUpdatePasswordSheet = false
         } catch {
-            self.errorMessage = error.localizedDescription
+            let errorString = error.localizedDescription.lowercased()
+            if errorString.contains("expired") || errorString.contains("otp_expired") || errorString.contains("403") {
+                self.errorMessage = "This password reset link has expired or is invalid."
+                self.isTokenExpired = true
+            } else {
+                self.errorMessage = error.localizedDescription
+            }
         }
         
         isLoading = false
