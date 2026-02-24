@@ -48,11 +48,8 @@ class AuthViewModel: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
         
-        do {
-            _ = try await SupabaseManager.client.auth.signIn(email: email, password: password)
-        } catch {
-            self.errorMessage = error.localizedDescription
-        }
+        do { _ = try await SupabaseManager.client.auth.signIn(email: email, password: password)
+        } catch { self.errorMessage = error.localizedDescription }
     }
 
     // Sign Up logic
@@ -69,9 +66,7 @@ class AuthViewModel: ObservableObject {
         do {
             try await SupabaseManager.client.auth.signUp(email: email, password: password)
             self.showVerifyEmailAlert = true
-        } catch {
-            self.errorMessage = error.localizedDescription
-        }
+        } catch { self.errorMessage = error.localizedDescription }
     }
     
     //Log Off logic
@@ -84,28 +79,26 @@ class AuthViewModel: ObservableObject {
     }
     
     func sendPasswordResetEmail(email: String) async {
-            guard !email.isEmpty else {
-                self.errorMessage = "Please enter your email to reset your password."
-                return
-            }
-            
-            isLoading = true
-            errorMessage = nil
-            passwordResetMessage = nil
-            
-            do {
-
-                try await SupabaseManager.client.auth.resetPasswordForEmail(
-                    email,
-                    redirectTo: URL(string: "nostresscoffee://reset-callback")!
-                )
-                self.passwordResetMessage = "If an account exists, a reset link has been sent to your email."
-                } catch {
-                    self.errorMessage = error.localizedDescription
-                }
-                
-                isLoading = false
+        guard !email.isEmpty else {
+            self.errorMessage = "Please enter your email to reset your password."
+            return
         }
+        
+        isLoading = true
+        errorMessage = nil
+        passwordResetMessage = nil
+        
+        do {
+
+            try await SupabaseManager.client.auth.resetPasswordForEmail(
+                email,
+                redirectTo: URL(string: "nostresscoffee://reset-callback")!
+            )
+            self.passwordResetMessage = "If an account exists, a reset link has been sent to your email."
+            } catch { self.errorMessage = error.localizedDescription }
+            
+            isLoading = false
+    }
 
 
     func updatePassword(newPassword: String) async {
@@ -113,18 +106,13 @@ class AuthViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        do {
-            _ = try await SupabaseManager.client.auth.update( user: UserAttributes(password: newPassword) )
-            
+        do { _ = try await SupabaseManager.client.auth.update( user: UserAttributes(password: newPassword) )
             self.showPasswordUpdateSuccessAlert = true
-            
         } catch {
             let errorString = error.localizedDescription.lowercased()
             if errorString.contains("expired") || errorString.contains("otp_expired") || errorString.contains("403") {
                 self.showPasswordUpdateFailedAlert = true
-            } else {
-                self.errorMessage = error.localizedDescription
-            }
+            } else { self.errorMessage = error.localizedDescription }
         }
         
         isLoading = false
@@ -144,11 +132,8 @@ class AuthViewModel: ObservableObject {
             // Give SwiftUI 0.5s to settle the background screens
             try? await Task.sleep(nanoseconds: 500_000_000)
             
-            if isDeadLink {
-                self.showExpiredTokenAlert = true
-            } else {
-                self.showingUpdatePasswordSheet = true
-            }
+            if isDeadLink { self.showExpiredTokenAlert = true
+            } else { self.showingUpdatePasswordSheet = true }
         }
     }
 }

@@ -10,7 +10,7 @@ import Supabase
 
 enum SupabaseManager {
     static let client = SupabaseClient(
-        supabaseURL: URL(string: "https://oeywovscnlhnetwmctyz.supabase.co")!,
+        supabaseURL: URL(string: "https://oeywovscnlhnetwmctyz.supabase.co") ?? URL(string: "https://fallback.supabase.co")!,
         supabaseKey: "sb_publishable_FiObl-OR5qnUsweDZp60-g_8NoRkmQ8",
         options: .init(
             auth: .init(
@@ -18,4 +18,9 @@ enum SupabaseManager {
             )
         )
     )
+}
+
+struct Profile: Codable {
+    let full_name: String
+    let username: String?
 }
