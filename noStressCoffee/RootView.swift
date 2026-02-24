@@ -50,13 +50,21 @@ struct RootView: View {
                     }
                 }
             }
+        
             .sheet(isPresented: $authVM.showingUpdatePasswordSheet) {
                 UpdatePasswordView()
             }
-        
-            .onOpenURL { url in
-                authVM.handleIncomingURL(url)
+            .sheet(isPresented: $authVM.showingForgotPasswordSheet) {
+                            ForgotPasswordView()
+                        }
+            .alert("Link Expired", isPresented: $authVM.showExpiredTokenAlert) {
+                Button("Cancel", role: .cancel) { } 
+                Button("Request New Link") { authVM.showingForgotPasswordSheet = true }
+            } message: {
+                Text("This password reset link has expired or already been used. Would you like to request a new one?")
             }
+        
+            .onOpenURL { url in authVM.handleIncomingURL(url) }
         }
 }
     

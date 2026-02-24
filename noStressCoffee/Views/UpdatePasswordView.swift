@@ -13,7 +13,6 @@ struct UpdatePasswordView: View {
     @State private var newPassword = ""
     @State private var confirmPassword = ""
     @State private var localError: String? = nil
-    @State private var showingForgotPassword = false
     
     var body: some View {
         NavigationStack {
@@ -32,18 +31,6 @@ struct UpdatePasswordView: View {
                         .foregroundColor(.red)
                         .font(.caption)
                         .multilineTextAlignment(.center)
-                }
-                
-                if authVM.isTokenExpired {
-                    Button(action: {
-                        showingForgotPassword = true
-                    }) {
-                        Text("Link expired? Request a new one.")
-                            .font(.footnote)
-                            .foregroundColor(.brown)
-                            .underline()
-                    }
-                    .padding(.top, 5)
                 }
                 
                 Button(action: {
@@ -66,6 +53,29 @@ struct UpdatePasswordView: View {
             .padding()
             .navigationTitle("Reset Password")
             .interactiveDismissDisabled()
+            
+            .alert("Password Updated", isPresented: $authVM.showPasswordUpdateSuccessAlert) {
+                Button("OK") {
+                    authVM.showingUpdatePasswordSheet = false
+                }
+            } message: {
+                Text("Your password has been changed successfully. You are securely logged in.")
+            }
+            
+            .alert("Password Update Failed", isPresented: $authVM.showPasswordUpdateFailedAlert) {
+                Button("Cancel", role: .cancel) { }
+                
+                Button("Request New Link") {
+                    authVM.showingUpdatePasswordSheet = false
+                    
+                    Task {
+                        try? await Task.sleep(nanoseconds: 500_000_000)
+                        authVM.showingForgotPasswordSheet = true
+                    }
+                }
+            } message: {
+                Text("This password reset link has expired. Would you like to request a new one?")
+            }
         }
     }
     
@@ -74,11 +84,6 @@ struct UpdatePasswordView: View {
         
         guard newPassword == confirmPassword else {
             localError = "Passwords do not match."
-            return
-        }
-        
-        guard newPassword.count >= 8 else {
-            localError = "Password must be at least 8 characters long."
             return
         }
         

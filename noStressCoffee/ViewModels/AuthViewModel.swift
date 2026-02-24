@@ -18,6 +18,10 @@ class AuthViewModel: ObservableObject {
     @Published var passwordResetMessage: String? = nil
     @Published var showingUpdatePasswordSheet = false
     @Published var isTokenExpired: Bool = false
+    @Published var showingForgotPasswordSheet = false
+    @Published var showExpiredTokenAlert = false
+    @Published var showPasswordUpdateSuccessAlert = false
+    @Published var showPasswordUpdateFailedAlert = false
     
     private var authTask: Task<Void, Never>?
     init() {
@@ -27,9 +31,6 @@ class AuthViewModel: ObservableObject {
                 
                 if let session = session, !session.isExpired {
                     self.currentUser = session.user
-                    if event == .passwordRecovery {
-                        self.showingUpdatePasswordSheet = true
-                    }
                 } else {
                     self.currentUser = nil
                 }
@@ -106,26 +107,21 @@ class AuthViewModel: ObservableObject {
                 isLoading = false
         }
 
-    // 2. Updates the password after the user clicks the link and returns to the app
+
     func updatePassword(newPassword: String) async {
-        guard newPassword.count >= 8 else {
-            self.errorMessage = "Password must be at least 8 characters long."
-            return
-        }
         
         isLoading = true
         errorMessage = nil
         
         do {
-            _ = try await SupabaseManager.client.auth.update(
-                user: UserAttributes(password: newPassword)
-            )
-            self.showingUpdatePasswordSheet = false
+            _ = try await SupabaseManager.client.auth.update( user: UserAttributes(password: newPassword) )
+            
+            self.showPasswordUpdateSuccessAlert = true
+            
         } catch {
             let errorString = error.localizedDescription.lowercased()
             if errorString.contains("expired") || errorString.contains("otp_expired") || errorString.contains("403") {
-                self.errorMessage = "This password reset link has expired or is invalid."
-                self.isTokenExpired = true
+                self.showPasswordUpdateFailedAlert = true
             } else {
                 self.errorMessage = error.localizedDescription
             }
@@ -135,19 +131,25 @@ class AuthViewModel: ObservableObject {
     }
     
     func handleIncomingURL(_ url: URL) {
-        let isResetLink = url.absoluteString.contains("reset-callback")
+        let urlString = url.absoluteString
+        let isResetLink = urlString.contains("reset-callback")
         
         SupabaseManager.client.handle(url)
         
         guard isResetLink else { return }
+
+        let isDeadLink = urlString.contains("error=") || urlString.contains("expired") || urlString.contains("403")
         
         Task {
-            for await state in SupabaseManager.client.auth.authStateChanges {
-                if state.session != nil {
-                    showingUpdatePasswordSheet = true
-                    break
-                }
+            // Give SwiftUI 0.5s to settle the background screens
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            
+            if isDeadLink {
+                self.showExpiredTokenAlert = true
+            } else {
+                self.showingUpdatePasswordSheet = true
             }
         }
     }
 }
+ 
