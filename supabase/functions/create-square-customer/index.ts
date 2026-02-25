@@ -7,15 +7,25 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests from the app
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') { return new Response('ok', { headers: corsHeaders }) }
 
   try {
-    const { email, userId } = await req.json()
-    
-    // 1. Create the customer in Square
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) throw new Error('Missing Auth Header')
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+
+    // THIS is where the real security happens now
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+    if (authError || !user) throw new Error('Unauthorized user: ' + authError?.message)
+
+    const userId = user.id
+    const email = user.email
+
     const squareResponse = await fetch('https://connect.squareup.com/v2/customers', {
       method: 'POST',
       headers: {
@@ -23,27 +33,20 @@ serve(async (req) => {
         'Authorization': `Bearer ${Deno.env.get('SQUARE_ACCESS_TOKEN')}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        email_address: email,
-        reference_id: userId // Save the Supabase ID in Square for cross-referencing
-      })
+      body: JSON.stringify({ email_address: email, reference_id: userId })
     })
 
     const squareData = await squareResponse.json()
-    
-    if (!squareResponse.ok) {
-      throw new Error(`Square API Error: ${JSON.stringify(squareData)}`)
-    }
+    if (!squareResponse.ok) throw new Error(`Square API Error`)
 
     const squareCustomerId = squareData.customer.id
 
-    // 2. Update the Supabase 'profiles' table using the Service Role Key
-    const supabaseClient = createClient(
+    const adminSupabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { error: dbError } = await supabaseClient
+    const { error: dbError } = await adminSupabase
       .from('profiles')
       .update({ square_customer_id: squareCustomerId })
       .eq('id', userId)
@@ -54,13 +57,11 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
-    } catch (error) {
-        // This prints the exact error into your Supabase Dashboard Logs
-        console.error("CRITICAL FUNCTION ERROR:", error.message, error.stack)
-        
-        return new Response(JSON.stringify({ error: error.message }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400, 
-        })
-      }
+  } catch (error) {
+    console.error("Function Error:", error.message)
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
+  }
 })
