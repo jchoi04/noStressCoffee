@@ -20,7 +20,9 @@ enum SupabaseManager {
     )
 }
 
-struct Profile: Codable {
+struct Profile: Codable, Equatable {
     let full_name: String
     let username: String?
+    let square_customer_id: String?
+    let points_balance: Int?
 }

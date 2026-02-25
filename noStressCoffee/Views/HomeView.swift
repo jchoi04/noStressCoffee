@@ -23,19 +23,15 @@ struct HomeView: View {
                             .fontWeight(.semibold)
                             .foregroundColor(.secondary)
                         
-
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.brown.opacity(0.1))
-                            .frame(height: 200)
-                            .overlay(
-                                VStack {
-                                    Image(systemName: "cup.and.saucer.fill")
-                                        .font(.largeTitle)
-                                    Text("Featured Brew")
-                                        .font(.headline)
-                                }
-                                .foregroundColor(.brown)
-                            )
+                        if let profile = userVM.currentProfile {
+                            LoyaltyCardView(points: profile.points_balance ?? 0)
+                        } else {
+                            // Skeleton loading state
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(uiColor: .secondarySystemBackground))
+                                .frame(height: 140)
+                                .overlay(ProgressView())
+                        }
                     }
                     .padding()
                 }
