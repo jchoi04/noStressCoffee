@@ -10,14 +10,15 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject var authVM: AuthViewModel
-    @StateObject private var userVM = UserViewModel()
+    @EnvironmentObject var userVM: UserViewModel
+    @StateObject private var homeVM = HomeViewModel()
     
     var body: some View {
         NavigationStack {
             VStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
-                        Text(userVM.greeting)
+                        Text(homeVM.timeBasedGreeting)
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.secondary)
@@ -48,7 +49,10 @@ struct HomeView: View {
             .padding()
             .navigationTitle("noStress")
             .task {
-                await userVM.fetchProfileAndGreet()
+                if userVM.currentProfile == nil {
+                    await userVM.fetchProfile()
+                }
+                homeVM.updateGreeting(for: userVM.currentProfile?.full_name)
             }
         }
     }
@@ -56,7 +60,7 @@ struct HomeView: View {
 
 #Preview {
     HomeView()
-        .environmentObject(AuthViewModel())
+        .environmentObject(UserViewModel())
 }
 
 
