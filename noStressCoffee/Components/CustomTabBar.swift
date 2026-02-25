@@ -9,13 +9,13 @@ import SwiftUI
 
 //tab nav enum
 enum Tab: CaseIterable {
-    case home, announcements, chat, gift, merch
+    case home, announcements, loyalty, gift, merch
 
     var icon: String {
         switch self {
         case .home: return "house"
         case .announcements: return "megaphone"
-        case .chat: return "message"
+        case .loyalty: return "star"
         case .gift: return "gift"
         case .merch: return "cart"
         }
@@ -26,7 +26,7 @@ enum Tab: CaseIterable {
         switch self {
         case .home: HomeView()
         case .announcements: AnnouncementsView()
-        case .chat: ChatView()
+        case .loyalty: LoyaltyPageView()
         case .gift: GiftView()
         case .merch: MerchView()
         }

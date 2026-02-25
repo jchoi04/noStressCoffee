@@ -27,9 +27,26 @@ class UserViewModel: ObservableObject {
 
             self.currentProfile = profile
             
+            if profile.square_customer_id == nil {
+                await generateSquareProfile()
+            }
+            
         } catch {
             print("Error fetching profile: \(error)")
         }
     }
+    
+    private func generateSquareProfile() async {
+        do {
+            try await SupabaseManager.client.functions.invoke("create-square-customer")
+            await fetchProfile()
+        } catch {
+            print("Failed to generate Square profile: \(error)")
+            if let functionError = error as? FunctionsError,
+               case let .httpError(code, data) = functionError {
+                let realError = String(data: data, encoding: .utf8) ?? "Unknown"
+                print("Real Backend Error (\(code)): \(realError)")
+            }
+        }
+    }
 }
-

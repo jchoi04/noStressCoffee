@@ -11,6 +11,17 @@ import CoreImage.CIFilterBuiltins
 struct QRCodeView: View {
     let customerId: String
     
+    var body: some View {
+        Image(uiImage: generateQRCode(from: customerId))
+            .resizable()
+            .interpolation(.none)
+            .scaledToFit()
+            .padding()
+            .background(Color.white)
+            .cornerRadius(12)
+            .shadow(radius: 5)
+    }
+    
     func generateQRCode(from string: String) -> UIImage {
         let context = CIContext()
         let filter = CIFilter.qrCodeGenerator()
@@ -27,18 +38,6 @@ struct QRCodeView: View {
             }
         }
         return UIImage(systemName: "xmark.circle") ?? UIImage()
-    }
-    
-    var body: some View {
-        Image(uiImage: generateQRCode(from: customerId))
-            .resizable()
-            .interpolation(.none)
-            .scaledToFit()
-            .frame(width: 200, height: 200)
-            .padding()
-            .background(Color.white)
-            .cornerRadius(12)
-            .shadow(radius: 5)
     }
 }
 #Preview {

@@ -59,25 +59,8 @@ class AuthViewModel: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
         
-        do { //create supabase auth user
-            let authResponse = try await SupabaseManager.client.auth.signUp(email: email, password: password)
-            
-            // extract user's id
-            let userId = authResponse.user.id
-            
-            //trigger secure edge function to create square customer
-            struct SquareRequest: Encodable {
-                let userId: UUID
-                let email: String
-            }
-            
-            try await SupabaseManager.client.functions.invoke(
-                "create-square-customer",
-                options: FunctionInvokeOptions(
-                    body: try? JSONEncoder().encode(SquareRequest(userId: userId, email: email))
-                )
-            )
-            
+        do {
+            try await SupabaseManager.client.auth.signUp(email: email, password: password)
             self.showVerifyEmailAlert = true
         } catch {
             self.errorMessage = error.localizedDescription
